@@ -1,0 +1,51 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+
+
+namespace api_tpos.Controllers
+{
+
+    [RoutePrefix("api/Vendedores")]
+    public class VendedoresController : ApiController
+    {
+        [HttpGet]
+        [Route("{imei}/{ruta}")]
+
+        public DataSet getUSer(string imei, string ruta)
+        {
+            DataSet ds = new DataSet("Vendedores");
+            using (SqlConnection con = new SqlConnection(ConfigurationManager.ConnectionStrings["api_tpos.Properties.Settings.Conexion"].ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_tpos_consulta_vendedores", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add("@IMEI", SqlDbType.VarChar).Value = imei;
+
+                    cmd.Parameters.Add("@RUTA", SqlDbType.VarChar).Value = ruta;
+                    if (con.State != ConnectionState.Open)
+                    {
+                        con.Open();
+                    }
+                    SqlDataAdapter adp = new SqlDataAdapter();
+                    adp.TableMappings.Add("Table", "Vendedores");
+                    adp.SelectCommand = cmd;
+                    adp.Fill(ds);
+
+                    if (con.State == ConnectionState.Open)
+                    {
+                        con.Close();
+                    }
+                }
+            }
+            return ds;
+        }
+    }
+}
