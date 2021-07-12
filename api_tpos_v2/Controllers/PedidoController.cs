@@ -32,7 +32,6 @@ namespace promovil_rest.Controllers
                         {
                             con.Open();
                         }
-
                         try
                         {
                             cmd.CommandType = CommandType.StoredProcedure;
@@ -58,22 +57,31 @@ namespace promovil_rest.Controllers
                             cmd.Parameters.Add("@pDEPATAMENTO", SqlDbType.VarChar).Value = pedido.departamento;
                             cmd.Parameters.Add("@pMUNICIPIO", SqlDbType.VarChar).Value = pedido.municipio;
                             cmd.Parameters.Add("@pZONA", SqlDbType.TinyInt).Value = pedido.zona;
-                            retRecord = cmd.ExecuteNonQuery();
-                           // if (retRecord >= 0)
-                         //   {
+
+
+
+                            SqlDataReader reader = cmd.ExecuteReader();
+                            while (reader.Read())
+                            {
+                                retRecord = reader.GetInt32(0);
+
+                            }
+
+                            if (retRecord == 1)
+                            {
                                 if (PostDetalles(pedido.detalles) >= 0)
                                 {
                                     saveImage(pedido.imagen1, pedido.fact_num.ToString(), "1");
                                     saveImage(pedido.imagen2, pedido.fact_num.ToString(), "2");
-                                    //  transaction.Commit();
-                                }//
-                                 //else transaction.Rollback();                                                        
-                          //  }
+
+                                }
+                            }
+                            else retRecord = 100;
+                            
                             con.Close();
                         }
                         catch (Exception ex)
                         {
-                            ///  transaction.Rollback();
                             return 500;
                         }
 
@@ -84,9 +92,13 @@ namespace promovil_rest.Controllers
             {
                 retRecord = 99;
             }
-                return retRecord;
+               
+            return retRecord;
             
         }
+
+
+
         private int PostDetalles(List<DetallePedido> detalles)
         {
             int retRecord = 0, renglon = 1;
@@ -103,17 +115,10 @@ namespace promovil_rest.Controllers
                         {
                             con.Open();
                         }
-
-
-                        /*   transaction = con.BeginTransaction("Transaction2");
-                           cmd.Connection = con;
-                           cmd.Transaction = transaction;*/
                         try
                         {
 
-
                             cmd.CommandType = CommandType.StoredProcedure;
-
                             cmd.Parameters.Add("@IMEI", SqlDbType.VarChar).Value = item.imei;
                             cmd.Parameters.Add("@pTIPO_DOC", SqlDbType.VarChar).Value = item.tipo_doc;
                             cmd.Parameters.Add("@pFACT_NUM", SqlDbType.Int).Value = item.fact_num;
